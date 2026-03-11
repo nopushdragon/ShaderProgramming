@@ -1,0 +1,9 @@
+# Visual Studio 관련
+.vs/
+[Dd]ebug/
+[Rr]elease/
+*.user
+
+# 기타 운영체제 임시 파일
+Thumbs.db
+.DS_Store
