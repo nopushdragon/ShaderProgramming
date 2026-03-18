@@ -3,6 +3,11 @@
 uniform float u_Time;
 
 in vec3 a_Position;
+in float a_Mass;
+in vec2 a_Vel;
+
+const float c_PI = 3.141592;
+const vec2 c_G = vec2(0, -9.8);
 
 
 void sin1() // ai°¡ ¸¸µé¾ú´Âµ¥ Àß ¾ÈµÆÀ½ ai ¶Ë¸ÛÃ»ÇÔ;;
@@ -106,7 +111,27 @@ void sangsang2(){
     gl_Position = newPosition;
 }
 
+
+
+void falling()
+{
+    float vx = a_Vel.x;
+    float t =  mod(vx + mod(u_Time, 1.0),1.0);
+    float tt = t*t;
+    float vy = a_Vel.y;
+    float initPosX = a_Position.x + cos(vy*3.14)*0.5;
+    float initPosY = a_Position.y + sin(vy*3.14)*0.5;
+
+    vec4 newPos;
+    newPos.x = initPosX;
+    newPos.y = initPosY + vy*t + 0.5*c_G.y*tt;
+    newPos.z = 0;
+    newPos.w = 1;
+
+    gl_Position = newPos;
+}
+
 void main()
 {
-	sangsang2();
+	falling();
 }

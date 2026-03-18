@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include <iostream>   
+#include <vector>
 #include "Renderer.h"
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
@@ -48,24 +50,45 @@ void Renderer::CreateVertexBufferObjects()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect), rect, GL_STATIC_DRAW);
 
-	float centerX = 0;
-	float centerY = 0;
-	float size = 0.1;
-	float halfSize{ size / 2 };
-	float triangle[]
-		=
-	{
-		centerX - halfSize, centerY - halfSize, 0,
-		centerX + halfSize, centerY - halfSize, 0,
-		centerX + halfSize, centerY + halfSize, 0,
+	static bool seeded = false;
+	if (!seeded) { srand((unsigned int)time(NULL)); seeded = true; }
 
-		centerX - halfSize, centerY - halfSize, 0,
-		centerX - halfSize, centerY + halfSize, 0,
-		centerX + halfSize, centerY + halfSize, 0
-	};
+	const int particleCount = 1000000; // 파티클 개수
+	std::vector<float> vertices;
+
+	float size = 0.02;
+	float halfSize{ size / 2 };
+
+	for (int i = 0; i < particleCount; ++i)
+	{
+		float centerX = 0;
+		float centerY = 0;
+		float vx = ((rand() % 200) - 100) / 100.0f;
+		float vy = (rand() % 200) / 100.0f;
+		float mass = 1;
+		float triangle[]
+			=
+		{
+			centerX - halfSize, centerY - halfSize, 0,
+			mass, vx, vy,
+			centerX + halfSize, centerY - halfSize, 0,
+			mass, vx, vy,
+			centerX + halfSize, centerY + halfSize, 0,
+			mass, vx, vy,
+
+			centerX - halfSize, centerY - halfSize, 0,
+			mass, vx, vy,
+			centerX - halfSize, centerY + halfSize, 0,
+			mass, vx, vy,
+			centerX + halfSize, centerY + halfSize, 0,
+			mass, vx, vy
+		};
+		vertices.insert(vertices.end(), std::begin(triangle), std::end(triangle));
+	}
+
 	glGenBuffers(1, &m_TriangleVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 }
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -206,7 +229,7 @@ float gTime = 0;
 
 void Renderer::DrawTriangle()
 {
-	gTime += 0.00001;
+	gTime += 0.0001;
 
 	//Program select
 	glUseProgram(m_TriangleShader);
@@ -215,11 +238,23 @@ void Renderer::DrawTriangle()
 	glUniform1f(uTime, gTime);
 
 	int attribPosition = glGetAttribLocation(m_TriangleShader, "a_Position");
-	glEnableVertexAttribArray(attribPosition);
-	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	int attribMass = glGetAttribLocation(m_TriangleShader, "a_Mass");
+	int attribVel = glGetAttribLocation(m_TriangleShader, "a_Vel");
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnableVertexAttribArray(attribPosition);
+	glEnableVertexAttribArray(attribMass);
+	glEnableVertexAttribArray(attribVel);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
+	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
+	glVertexAttribPointer(attribMass, 1, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(sizeof(float) * 3));
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
+	glVertexAttribPointer(attribVel, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(sizeof(float) * 4));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6 * 100);
 }
 
 void Renderer::GetGLPosition(float x, float y, float *newX, float *newY)
