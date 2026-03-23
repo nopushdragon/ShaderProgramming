@@ -2,11 +2,22 @@
 
 uniform float u_Time;
 
-in vec3 a_Position;
-in float a_Mass;
-in vec2 a_Vel;
+//in vec3 a_Position;
+//in float a_Mass;
+//in vec2 a_Vel;
+//in float a_RV;
+//in float a_RV1;
 
-const float c_PI = 3.141592;
+layout(location = 0) in vec4 a_PosMass; 
+layout(location = 1) in vec4 a_VelRV;
+
+vec3 a_Position = a_PosMass.xyz;
+float a_Mass = a_PosMass.w;
+vec2 a_Vel = a_VelRV.xy;
+float a_RV = a_VelRV.z;
+float a_RV1 = a_VelRV.w;
+
+const float c_PI = 3.141592; 
 const vec2 c_G = vec2(0, -9.8);
 
 
@@ -111,24 +122,54 @@ void sangsang2(){
     gl_Position = newPosition;
 }
 
+float pseudoRandom(float n){
+    return fract(sin(n) * 43758.5453123);
+}
 
+//void falling()
+//{
+//    float newTime = u_Time - a_RV1;
+//    if(newTime > 0){
+//        float t =  mod(newTime, 1.0);
+//        float tt = t*t;
+//        float vx = a_Vel.x;
+//        float vy = a_Vel.y;
+//        float initPosX = a_Position.x + cos(a_RV * c_PI) * 0.7;
+//        float initPosY = a_Position.y + sin(a_RV * c_PI) * 0.7;
+//
+//        vec4 newPos;
+//        newPos.x = initPosX + vx * t + 0.5 * c_G.x * tt;
+//        newPos.y = initPosY + vy * t + 0.5 * c_G.y * tt;
+//        newPos.z = 0;
+//        newPos.w = 1;
+//
+//        gl_Position = newPos;
+//    }
+//    else {
+//        gl_Position = vec4(-2.0, -2.0, 0.0, 1.0); // È­¸é ¹ÛÀ¸·Î ¼û±è
+//    }
+//}
 
 void falling()
 {
-    float vx = a_Vel.x;
-    float t =  mod(vx + mod(u_Time, 1.0),1.0);
-    float tt = t*t;
-    float vy = a_Vel.y;
-    float initPosX = a_Position.x + cos(vy*3.14)*0.5;
-    float initPosY = a_Position.y + sin(vy*3.14)*0.5;
+    float newTime = u_Time - a_RV1; 
+    if(newTime > 0){ 
+        float t = mod(newTime, 1.0); 
+        float tt = t * t; 
+        
+        float initPosX = a_Position.x + cos(a_RV * c_PI) * 0.7; 
+        float initPosY = a_Position.y + sin(a_RV * c_PI) * 0.7; 
 
-    vec4 newPos;
-    newPos.x = initPosX;
-    newPos.y = initPosY + vy*t + 0.5*c_G.y*tt;
-    newPos.z = 0;
-    newPos.w = 1;
-
-    gl_Position = newPos;
+        vec4 newPos;
+        newPos.x = initPosX + a_Vel.x * t + 0.5 * c_G.x * tt; 
+        newPos.y = initPosY + a_Vel.y * t + 0.5 * c_G.y * tt; 
+        newPos.z = 0;
+        newPos.w = 1;
+        gl_Position = newPos; 
+    }
+    else {
+        gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
+    }
 }
 
 void main()
