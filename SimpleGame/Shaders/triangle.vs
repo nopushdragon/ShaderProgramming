@@ -10,6 +10,7 @@ uniform float u_Time;
 
 layout(location = 0) in vec4 a_PosMass; 
 layout(location = 1) in vec4 a_VelRV;
+in float a_RV2;
 
 vec3 a_Position = a_PosMass.xyz;
 float a_Mass = a_PosMass.w;
@@ -19,6 +20,8 @@ float a_RV1 = a_VelRV.w;
 
 const float c_PI = 3.141592; 
 const vec2 c_G = vec2(0, -9.8);
+
+out float v_Grey;
 
 
 void sin1() // ai°¡ ¸¸µé¾ú´Âµ¥ Àß ¾ÈµÆÀ½ ai ¶Ë¸ÛÃ»ÇÔ;;
@@ -152,16 +155,20 @@ float pseudoRandom(float n){
 
 void falling()
 {
-    float newTime = u_Time - a_RV1; 
+    float newTime = u_Time - a_RV1*3; 
     if(newTime > 0){ 
-        float t = mod(newTime, 1.0); 
+        float lifeTime = a_RV2 + 0.5;
+        //float scale = pseudoRandom(a_RV1);
+        float t = mod(newTime, lifeTime)/lifeTime; 
         float tt = t * t; 
+        float scale = lifeTime - t;
         
-        float initPosX = a_Position.x + cos(a_RV * c_PI) * 0.7; 
-        float initPosY = a_Position.y + sin(a_RV * c_PI) * 0.7; 
+        float initPosX = a_Position.x * scale + cos(a_RV * c_PI) * 0.7; 
+        float initPosY = a_Position.y * scale + sin(a_RV * c_PI) * 0.7; 
 
         vec4 newPos;
-        newPos.x = initPosX + a_Vel.x * t + 0.5 * c_G.x * tt; 
+        //newPos.x = initPosX + a_Vel.x * t + 0.5 * c_G.x * tt; 
+        newPos.x = initPosX; 
         newPos.y = initPosY + a_Vel.y * t + 0.5 * c_G.y * tt; 
         newPos.z = 0;
         newPos.w = 1;
@@ -172,7 +179,30 @@ void falling()
     }
 }
 
+void Thrust()
+{
+    float newTime = u_Time - a_RV1;
+    if(newTime >0){
+        float t = mod(newTime, 1.0);
+        float ampScale = t*0.5;
+        float amp = (a_RV-0.5)*2;
+        float period = pseudoRandom(a_RV2);
+        float sizeScale = t*2;
+
+	    vec4 newPosition;
+	    newPosition.x = a_Position.x * sizeScale - 1 + 2 * t;
+        newPosition.y = a_Position.y * sizeScale + amp * ampScale * sin(t*2*period*c_PI);
+        newPosition.z = a_Position.z;
+        newPosition.w = 1.0;
+        gl_Position = newPosition;
+        v_Grey = 1-t;
+    }
+    else{
+        gl_Position = vec4(10000);
+    }
+}
+
 void main()
 {
-	falling();
+	Thrust();
 }

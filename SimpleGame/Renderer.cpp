@@ -65,27 +65,29 @@ void Renderer::CreateVertexBufferObjects()
 	{
 		float centerX = 0;
 		float centerY = 0;
-		float vx = ((rand() % 200) - 100) / 100.0f;
-		float vy = (rand() % 200) / 100.0f;
+		float vx = ((rand() % 100) - 100) / 100.0f;
+		//float vy = (rand() % 200) / 100.0f;
+		float vy = 0;
 		float mass = 1;
-		float RV = (rand() % 200) / 100.0f;
-		float RV1 = (rand() % 200) / 100.0f;
+		float RV = (rand() % 100) / 100.0f;
+		float RV1 = (rand() % 100) / 100.0f;
+		float RV2 = (rand() % 100) / 100.0f;
 		float triangle[]
 			=
 		{
 			centerX - halfSize, centerY - halfSize, 0,
-			mass, vx, vy, RV, RV1,
+			mass, vx, vy, RV, RV1, RV2,
 			centerX + halfSize, centerY - halfSize, 0,
-			mass, vx, vy, RV, RV1,
+			mass, vx, vy, RV, RV1, RV2,
 			centerX + halfSize, centerY + halfSize, 0,
-			mass, vx, vy, RV, RV1,
+			mass, vx, vy, RV, RV1, RV2,
 
 			centerX - halfSize, centerY - halfSize, 0,
-			mass, vx, vy, RV, RV1,
+			mass, vx, vy, RV, RV1, RV2,
 			centerX - halfSize, centerY + halfSize, 0,
-			mass, vx, vy, RV, RV1,
+			mass, vx, vy, RV, RV1, RV2,
 			centerX + halfSize, centerY + halfSize, 0,
-			mass, vx, vy, RV, RV1
+			mass, vx, vy, RV, RV1, RV2
 		};
 		vertices.insert(vertices.end(), std::begin(triangle), std::end(triangle));
 	}
@@ -275,7 +277,7 @@ float gTime = 0;
 void Renderer::DrawTriangle()
 {
 	gTime += 0.0001; // 루프 속도에 맞게 조절 필요
-	int stride = 8 * sizeof(float); // vec4(4) + vec4(4) = 8
+	int stride = 9 * sizeof(float); // vec4(4) + vec4(4) = 8
 
 	glUseProgram(m_TriangleShader);
 	glUniform1f(glGetUniformLocation(m_TriangleShader, "u_Time"), gTime);
@@ -289,6 +291,11 @@ void Renderer::DrawTriangle()
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 4));
+
+	int attribRVel_2 = glGetAttribLocation(m_TriangleShader, "a_RV2");
+	glEnableVertexAttribArray(attribRVel_2);
+	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
+	glVertexAttribPointer(attribRVel_2, 1, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 8));
 
 	// 그리기
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nemoCnt);
