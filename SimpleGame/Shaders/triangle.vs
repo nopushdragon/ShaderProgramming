@@ -184,10 +184,10 @@ void Thrust()
     float newTime = u_Time - a_RV1;
     if(newTime >0){
         float t = mod(newTime, 1.0);
-        float ampScale = t*0.5;
+        float ampScale = 0.5 - t*0.5;
         float amp = (a_RV-0.5)*2;
-        float period = pseudoRandom(a_RV2);
-        float sizeScale = t*2;
+        float period = a_RV2;
+        float sizeScale = 2 - t*2;
 
 	    vec4 newPosition;
 	    newPosition.x = a_Position.x * sizeScale - 1 + 2 * t;
