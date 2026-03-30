@@ -24,6 +24,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Load shaders
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
 	m_TriangleShader = CompileShaders("./Shaders/triangle.vs", "./Shaders/triangle.fs");
+	m_fragShader = CompileShaders("./Shaders/FS.vs", "./Shaders/FS.fs");
 	
 	//Create VBOs
 	CreateVertexBufferObjects();
@@ -95,6 +96,22 @@ void Renderer::CreateVertexBufferObjects()
 	glGenBuffers(1, &m_TriangleVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+	float rects[]	// x, y, z : stride 3
+		=
+	{
+		-1,-1, 0, 0, 1,
+		1, 1, 0, 1, 0,
+		-1, 1, 0, 0, 0,	//triangle 1
+
+		-1, -1, 0, 0, 1,
+		1, -1, 0, 1, 1,
+		1, 1, 0, 1 ,0	//triangle 2
+	};
+	
+	glGenBuffers(1, &m_fragVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_fragVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rects), rects, GL_STATIC_DRAW);
 }
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -279,8 +296,8 @@ void Renderer::DrawTriangle()
 	gTime += 0.0001; // 루프 속도에 맞게 조절 필요
 	int stride = 9 * sizeof(float); // vec4(4) + vec4(4) = 8
 
-	glUseProgram(m_TriangleShader);
-	glUniform1f(glGetUniformLocation(m_TriangleShader, "u_Time"), gTime);
+	glUseProgram(m_fragVBO);
+	glUniform1f(glGetUniformLocation(m_fragVBO, "u_Time"), gTime);
 
 	// 1. a_PosMass (Location 0) 설정
 	glEnableVertexAttribArray(0);
@@ -292,7 +309,7 @@ void Renderer::DrawTriangle()
 	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 4));
 
-	int attribRVel_2 = glGetAttribLocation(m_TriangleShader, "a_RV2");
+	int attribRVel_2 = glGetAttribLocation(m_fragVBO, "a_RV2");
 	glEnableVertexAttribArray(attribRVel_2);
 	glBindBuffer(GL_ARRAY_BUFFER, m_TriangleVBO);
 	glVertexAttribPointer(attribRVel_2, 1, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 8));
@@ -302,6 +319,29 @@ void Renderer::DrawTriangle()
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+}
+
+void Renderer::DrawFS()
+{
+	gTime += 0.0016;
+
+	//Program select
+	glUseProgram(m_fragShader);
+
+	int uTime = glGetUniformLocation(m_fragShader, "u_Time");
+	glUniform1f(uTime, gTime);
+
+	int attribPosition = glGetAttribLocation(m_fragShader, "a_Position");
+	int attribTex = glGetAttribLocation(m_fragShader, "a_Tex");
+
+	glEnableVertexAttribArray(attribPosition);
+	glEnableVertexAttribArray(attribTex);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_fragVBO);
+	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
+	glVertexAttribPointer(attribTex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)(sizeof(float)*3));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void Renderer::GetGLPosition(float x, float y, float *newX, float *newY)
