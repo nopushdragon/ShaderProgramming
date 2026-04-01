@@ -1,9 +1,12 @@
 #version 330
 
+uniform float u_Time;
+
 in vec3 a_Position;
 in vec2 a_Tex;
 
 out vec2 v_Tex;
+
 
 void main()
 {
