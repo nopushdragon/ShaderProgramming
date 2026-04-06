@@ -39,5 +39,7 @@ private:
 
 	GLuint m_fragVBO = 0;
 	GLuint m_fragShader = 0;
+
+	float m_raininfo[500 * 4];
 };
 

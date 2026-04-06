@@ -4,10 +4,12 @@ layout(location=0) out vec4 FragColor;
 
 uniform vec4 u_Color;
 uniform float u_Time;
+uniform vec4 u_Points[500];
 
 in vec2 v_Tex;
 
-float c_PI = 3.141592;
+const float c_PI = 3.141592;
+
 
 void BW()
 {
@@ -63,11 +65,41 @@ void Circles()
 
 	float grey = pow(abs(sin(d * 4 * c_PI * count - u_Time)),32);
 	
-	FragColor = vec4(0.7,grey - mod(u_Time,1.0),0.2,1);
+	FragColor = vec4(grey);
+
+}
+
+void RainDrop()
+{	
+	float accum = 0;
+
+	for(int i = 0 ;i  < 500 ; i ++){
+	float sTime = u_Points[i].z;
+	float lTime = u_Points[i].w;
+	float newTime = u_Time - sTime; 
+	if(newTime > 0){
+		float t = fract(newTime/lTime);
+		float oneMinus = 1 - t; // 1 ~ 0
+		t = t*lTime;
+		vec2 center = u_Points[i].xy;
+		vec2 curpos = v_Tex;
+		float count = 5;
+		float range = t/5;
+
+		float d = distance(curpos,center);
+		float fade = (1/range)*clamp(range - d, 0, 1);
+
+		float grey = pow(abs(sin(d * 4 * c_PI * count - t * 10)),32);
+		
+		accum += grey * fade * oneMinus;
+		}
+	}
+	FragColor = vec4(accum);
+
 
 }
 
 void main()
 {
-	Circles();
+	RainDrop();
 }
