@@ -2,6 +2,8 @@
 #include <iostream>   
 #include <vector>
 #include "Renderer.h"
+#include "LoadPng.h"
+#include <assert.h>
 
 #define nemoCnt 1000
 
@@ -25,6 +27,14 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
 	m_TriangleShader = CompileShaders("./Shaders/triangle.vs", "./Shaders/triangle.fs");
 	m_fragShader = CompileShaders("./Shaders/FS.vs", "./Shaders/FS.fs");
+
+	//Load Textures
+	m_RgbTexture = CreatePngTexture("./textures/rgb.png", GL_NEAREST);
+	m_NumsTexture = CreatePngTexture("./textures/numbers.png", GL_NEAREST);
+	for (int i = 0; i < 10; i++) {
+		std::string path = " ./textures/" + std::to_string(i) + ".png";
+		m_NumTexture[i] = CreatePngTexture((char*)path.c_str(), GL_NEAREST);
+	}
 	
 	//Create VBOs
 	CreateVertexBufferObjects();
@@ -50,6 +60,52 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 bool Renderer::IsInitialized()
 {
 	return m_Initialized;
+}
+
+GLuint Renderer::CreatePngTexture(char* filePath, GLuint samplingMethod)
+
+{
+
+	//Load Png
+
+	std::vector<unsigned char> image;
+
+	unsigned width, height;
+
+	unsigned error = lodepng::decode(image, width, height, filePath);
+
+	if (error != 0)
+
+	{
+
+		std::cout << "PNG image loading failed:" << filePath << std::endl;
+
+		assert(0);
+
+	}
+
+
+
+	GLuint temp;
+
+	glGenTextures(1, &temp);
+
+	glBindTexture(GL_TEXTURE_2D, temp);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+
+		GL_UNSIGNED_BYTE, &image[0]);
+
+
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, samplingMethod);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, samplingMethod);
+
+
+
+	return temp;
+
 }
 
 void Renderer::CreateVertexBufferObjects()
@@ -342,6 +398,12 @@ void Renderer::DrawFS()
 
 	int uTime = glGetUniformLocation(m_fragShader, "u_Time");
 	glUniform1f(uTime, gTime);
+
+	int u_RGBTexure = glGetUniformLocation(m_fragShader, "u_RGBTex");
+	glUniform1f(u_RGBTexure, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_RgbTexture);
 
 	int uPoints = glGetUniformLocation(m_fragShader, "u_Points");
 	glUniform4fv(uPoints, 500, m_raininfo);

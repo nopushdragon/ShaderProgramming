@@ -25,6 +25,7 @@ private:
 	GLuint CompileShaders(char* filenameVS, char* filenameFS);
 	void CreateVertexBufferObjects();
 	void GetGLPosition(float x, float y, float *newX, float *newY);
+	GLuint CreatePngTexture(char* filePath, GLuint samplingMethod);
 
 	bool m_Initialized = false;
 	
@@ -41,5 +42,10 @@ private:
 	GLuint m_fragShader = 0;
 
 	float m_raininfo[500 * 4];
+
+	//Texture
+	GLuint m_RgbTexture = 0;
+	GLuint m_NumTexture[10];
+	GLuint m_NumsTexture = 0;
 };
 
